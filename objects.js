@@ -57,12 +57,12 @@ class Skybox extends _Object {
 	Create() {
 		this.layer = -99;
 		
-		this.t = astLoadTexture('http://127.0.0.1/top.png');
-		this.b = astLoadTexture('http://127.0.0.1/bottom.png');
-		this.l = astLoadTexture('http://127.0.0.1/left.png');
-		this.r = astLoadTexture('http://127.0.0.1/right.png');
-		this.f = astLoadTexture('http://127.0.0.1/front.png');
-		this.k = astLoadTexture('http://127.0.0.1/back.png');
+		this.t = astLoadTexture('http://127.0.0.1/res/images/top.png');
+		this.b = astLoadTexture('http://127.0.0.1/res/images/bottom.png');
+		this.l = astLoadTexture('http://127.0.0.1/res/images/left.png');
+		this.r = astLoadTexture('http://127.0.0.1/res/images/right.png');
+		this.f = astLoadTexture('http://127.0.0.1/res/images/front.png');
+		this.k = astLoadTexture('http://127.0.0.1/res/images/back.png');
 	}
 	
 	Render() {
@@ -253,8 +253,8 @@ class Statek extends _Object {
 		this.nor_yaw = [0, 0, 1];
 		
 		this.direction = [1, 0, 0];
-		this.model = await astLoadModel('http://127.0.0.1/shipv2.obj');
-		this.texShip = astLoadTexture('http://127.0.0.1/uv.jpg');
+		this.model = await astLoadModel('http://127.0.0.1/res/models/shipv2.obj');
+		this.texShip = astLoadTexture('http://127.0.0.1/res/images/uv.jpg');
 	}
 	
 	Render() {
@@ -357,7 +357,7 @@ class Statek extends _Object {
 			
 			vec3.transformQuat(this.direction, this.direction, q);
 			console.log(this.direction);
-			//vec3.normalize(this.direction, this.direction);
+			vec3.normalize(this.direction, this.direction);
 		}
 
 		if (keyStatus[' '])
