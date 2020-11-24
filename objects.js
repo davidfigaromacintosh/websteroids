@@ -1,20 +1,22 @@
 var g_Renderer = null;
 var g_Statek = null;
 var g_Rock = null;
+var g_RockTexture = null;
 
 const astSceneInitiator = async () => {
 
   g_Rock = await astLoadModel('res/models/rock1.obj');
-
+  g_RockTexture = astLoadTexture('res/images/moon.jpg');
   g_Renderer = astInstanceCreate(Renderer, 0, 0, 0);
   astInstanceCreate(Skybox, 0, 0, 0);
   g_Statek = astInstanceCreate(Statek, 0, 0, 0);
 
-  for (var i = 0; i < 200; i++) {
+  const rock_range = 1000;
+  for (var i = 0; i < 100; i++) {
     astInstanceCreate(Rock,
-      -200 + 400 * Math.random(),
-      -200 + 400 * Math.random(),
-      -200 + 400 * Math.random()
+      rock_range * Math.random() - rock_range / 2,
+      rock_range * Math.random() - rock_range / 2,
+      rock_range * Math.random() - rock_range / 2
     );
   }
 
@@ -39,23 +41,18 @@ class Renderer extends _Object {
 
   Create() {
     this.layer = -100;
-    this.angle = 0;
     this.distance = 40;
     this.above = 10;
   }
 
   Render() {
+
+    this.distance = 30 + 3 * g_Statek.speed * g_Statek.speed;
+
     mat4.identity(m_Projection);
     mat4.identity(m_View);
 
     mat4.perspective(m_Projection, (60 * Math.PI) / 180, 1.77, 1, 1000000);
-    //mat4.lookAt(
-    //  m_View,
-    //  [80 * Math.cos(this.angle), 80 * Math.sin(this.angle), 40],
-    //  [0, 0, 0],
-    //  [0, 0, 1]
-    //);
-    //mat4.
 
     mat4.translate(m_View, m_View, [0, -this.above, -this.distance]);
     let v_lookat = mat4.create();
@@ -74,10 +71,6 @@ class Renderer extends _Object {
 
   }
 
-  Update() {
-    if (keyStatus['z']) this.angle -= 0.02;
-    if (keyStatus['x']) this.angle += 0.02;
-  }
 }
 
 // KLASA SKYBOXA
@@ -85,12 +78,12 @@ class Skybox extends _Object {
   Create() {
     this.layer = -99;
 
-    this.t = astLoadTexture('http://127.0.0.1/res/images/top.png');
-    this.b = astLoadTexture('http://127.0.0.1/res/images/bottom.png');
-    this.l = astLoadTexture('http://127.0.0.1/res/images/left.png');
-    this.r = astLoadTexture('http://127.0.0.1/res/images/right.png');
-    this.f = astLoadTexture('http://127.0.0.1/res/images/front.png');
-    this.k = astLoadTexture('http://127.0.0.1/res/images/back.png');
+    this.t = astLoadTexture('res/images/top.png');
+    this.b = astLoadTexture('res/images/bottom.png');
+    this.l = astLoadTexture('res/images/left.png');
+    this.r = astLoadTexture('res/images/right.png');
+    this.f = astLoadTexture('res/images/front.png');
+    this.k = astLoadTexture('res/images/back.png');
   }
 
   Render() {
@@ -431,9 +424,13 @@ class Statek extends _Object {
     var v_temp = mat4.create();
     mat4.copy(v_temp, m_View);
     mat4.identity(m_View);
-    mat4.translate(m_View, m_View, [0, -9 - g_Renderer.above, -g_Renderer.distance]);
+    mat4.translate(m_View, m_View, [0, -g_Renderer.above, -g_Renderer.distance]);
     mat4.rotateY(m_World, m_World, 180 * Math.PI / 180);
-    //mat4.translate(m_World, m_World, [0, -6, 0]);
+
+    mat4.rotateZ(m_World, m_World, -this.rot_pitch / 10);
+    mat4.rotateY(m_World, m_World, this.rot_yaw / 10);
+    mat4.rotateX(m_World, m_World, this.rot_roll / 10);
+    mat4.translate(m_World, m_World, [0, -9, 0]);
     astMatricesUpdate();
 
     gl.bindTexture(gl.TEXTURE_2D, this.texShip);
@@ -555,8 +552,6 @@ class Statek extends _Object {
 
     const f_rotYaw = (angle) => {
 
-      //this.rot_yaw += angle;
-      
       let q = [
         Math.sin(angle / 2) * this.nor_yaw[0],
         Math.sin(angle / 2) * this.nor_yaw[1],
@@ -575,8 +570,6 @@ class Statek extends _Object {
 
     const f_rotPitch = (angle) => {
 
-      //this.rot_pitch += angle;
-
       let q = [
         Math.sin(angle / 2) * this.nor_pitch[0],
         Math.sin(angle / 2) * this.nor_pitch[1],
@@ -594,8 +587,6 @@ class Statek extends _Object {
     }
 
     const f_rotRoll = (angle) => {
-
-      //this.rot_roll += angle;
 
       let q = [
         Math.sin(angle / 2) * this.nor_roll[0],
@@ -643,7 +634,7 @@ class Statek extends _Object {
       if (this.rot_yaw > -this.rot_max) this.rot_yaw -= this.rot_delta;
     }
 
-    f_rotPitch(this.rot_pitch * Math.PI / 180);
+    f_rotPitch(-this.rot_pitch * Math.PI / 180);
     f_rotRoll(this.rot_roll * Math.PI / 180);
     f_rotYaw(this.rot_yaw * Math.PI / 180);
 
@@ -663,12 +654,49 @@ class Statek extends _Object {
 //KLASA ASTEROIDKI
 class Rock extends _Object {
 
+  Create() {
+
+    this.scale = 1 + 7 * Math.random();
+    this.rot = 0;
+    this.rot_speed = 2 * Math.random() * Math.PI / 180;
+    this.rot_axis = [
+      2 * Math.random() - 1,
+      2 * Math.random() - 1,
+      2 * Math.random() - 1
+    ];
+    vec3.normalize(this.rot_axis, this.rot_axis);
+    this.mov_axis = [
+      0.5 * Math.random() - 0.25,
+      0.5 * Math.random() - 0.25,
+      0.5 * Math.random() - 0.25
+    ];
+  }
+
+  Update() {
+    this.rot += this.rot_speed;
+    this.x += this.mov_axis[0];
+    this.y += this.mov_axis[1];
+    this.z += this.mov_axis[2];
+  }
+
   Render() {
 
+    const r_matrix = mat4.create();
+    mat4.fromQuat(r_matrix, [
+      Math.sin(this.rot / 2) * this.rot_axis[0],
+      Math.sin(this.rot / 2) * this.rot_axis[1],
+      Math.sin(this.rot / 2) * this.rot_axis[2],
+      Math.cos(this.rot / 2)
+    ]);
+
     mat4.translate(m_World, m_World, [this.x, this.y, this.z]);
+    mat4.scale(m_World, m_World, [this.scale, this.scale, this.scale]);
+    mat4.multiply(m_World, m_World, r_matrix);
     astMatricesUpdate();
 
+    gl.bindTexture(gl.TEXTURE_2D, g_RockTexture);
     astDrawModel(g_Rock);
+    gl.bindTexture(gl.TEXTURE_2D, tex0);
 
     mat4.identity(m_World);
     astMatricesUpdate();
