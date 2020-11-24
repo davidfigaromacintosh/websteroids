@@ -92,21 +92,19 @@ const astMatricesUpdate = () => {
 };
 
 function parseOBJ(text) {
-  // because indices are base 1 let's just fill in the 0th data
+  //Inicjalizacja listy zawirającej dane o wierzchołkach
   const objPositions = [[0, 0, 0]];
   const objTexcoords = [[0, 0]];
   const objNormals = [[0, 0, 0]];
   const objColors = [[0, 0, 0]];
 
-  // same order as `f` indices
   const objVertexData = [objPositions, objTexcoords, objNormals, objColors];
 
-  // same order as `f` indices
   let webglVertexData = [
-    [], // positions
-    [], // texcoords
-    [], // normals
-    [], // colors
+    [], //Pozycje wierzchołków (X Y Z)
+    [], //Teksturowanie wierzchołków (S T)
+    [], //Normalne wierzchołków (X Y Z)
+    [], //Kolory wierzchołków (R G B A)
   ];
 
   const materialLibs = [];
@@ -119,8 +117,6 @@ function parseOBJ(text) {
   const noop = () => {};
 
   function newGeometry() {
-    // If there is an existing geometry and it's
-    // not empty then start a new one.
     if (geometry && geometry.data.position.length) {
       geometry = undefined;
     }
@@ -157,8 +153,7 @@ function parseOBJ(text) {
       const objIndex = parseInt(objIndexStr);
       const index = objIndex + (objIndex >= 0 ? 0 : objVertexData[i].length);
       webglVertexData[i].push(...objVertexData[i][index]);
-      // if this is the position index (index 0) and we parsed
-      // vertex colors then copy the vertex colors to the webgl vertex color data
+
       if (i === 0 && objColors.length > 1) {
         geometry.data.color.push(...objColors[index]);
       }
@@ -166,8 +161,8 @@ function parseOBJ(text) {
   }
 
   const keywords = {
+    //Parsowanie pozycji i kolorów wierzchołków
     v(parts) {
-      // if there are more than 3 values here they are vertex colors
       if (parts.length > 3) {
         objPositions.push(parts.slice(0, 3).map(parseFloat));
         objColors.push(parts.slice(3).map(parseFloat));
@@ -175,13 +170,15 @@ function parseOBJ(text) {
         objPositions.push(parts.map(parseFloat));
       }
     },
+    //Parsowanie normalnych wierzchołków
     vn(parts) {
       objNormals.push(parts.map(parseFloat));
     },
+    //Parsowanie mapowania tekstur wierzchołków
     vt(parts) {
-      // should check for missing v and extra w?
       objTexcoords.push(parts.map(parseFloat));
     },
+    //Składanie ścian z wierzchołków
     f(parts) {
       setGeometry();
       const numTriangles = parts.length - 2;
@@ -191,10 +188,9 @@ function parseOBJ(text) {
         addVertex(parts[tri + 2]);
       }
     },
-    s: noop, // smoothing group
+    s: noop,
+
     mtllib(parts, unparsedArgs) {
-      // the spec says there can be multiple filenames here
-      // but many exist with spaces in a single filename
       materialLibs.push(unparsedArgs);
     },
     usemtl(parts, unparsedArgs) {
@@ -226,13 +222,12 @@ function parseOBJ(text) {
     const parts = line.split(/\s+/).slice(1);
     const handler = keywords[keyword];
     if (!handler) {
-      console.warn('unhandled keyword:', keyword); // eslint-disable-line no-console
+      console.warn('Nieznany symbol:', keyword);
       continue;
     }
     handler(parts, unparsedArgs);
   }
 
-  // remove any arrays that have no entries.
   for (const geometry of geometries) {
     geometry.data = Object.fromEntries(
       Object.entries(geometry.data).filter(([, array]) => array.length > 0)
