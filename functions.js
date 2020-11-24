@@ -45,10 +45,13 @@ const astDrawTriangle = (
   const texcoords = [s1, t1, s2, t2, s3, t3];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
   gl.bindBuffer(gl.ARRAY_BUFFER, astCBuffer);
+  gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
   gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
+  gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
 
   gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -63,10 +66,15 @@ const astDrawLine = (x1, y1, z1, x2, y2, z2, r, g, b, a) => {
   const texcoords = [0, 0, 1, 1];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
   gl.bindBuffer(gl.ARRAY_BUFFER, astCBuffer);
+  gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
   gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
+  gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
 
   gl.drawArrays(gl.LINES, 0, 2);
@@ -92,21 +100,19 @@ const astMatricesUpdate = () => {
 };
 
 function parseOBJ(text) {
-  // because indices are base 1 let's just fill in the 0th data
+  //Inicjalizacja listy zawirającej dane o wierzchołkach
   const objPositions = [[0, 0, 0]];
   const objTexcoords = [[0, 0]];
   const objNormals = [[0, 0, 0]];
   const objColors = [[0, 0, 0]];
 
-  // same order as `f` indices
   const objVertexData = [objPositions, objTexcoords, objNormals, objColors];
 
-  // same order as `f` indices
   let webglVertexData = [
-    [], // positions
-    [], // texcoords
-    [], // normals
-    [], // colors
+    [], //Pozycje wierzchołków (X Y Z)
+    [], //Teksturowanie wierzchołków (S T)
+    [], //Normalne wierzchołków (X Y Z)
+    [], //Kolory wierzchołków (R G B A)
   ];
 
   const materialLibs = [];
@@ -119,8 +125,6 @@ function parseOBJ(text) {
   const noop = () => {};
 
   function newGeometry() {
-    // If there is an existing geometry and it's
-    // not empty then start a new one.
     if (geometry && geometry.data.position.length) {
       geometry = undefined;
     }
@@ -157,8 +161,7 @@ function parseOBJ(text) {
       const objIndex = parseInt(objIndexStr);
       const index = objIndex + (objIndex >= 0 ? 0 : objVertexData[i].length);
       webglVertexData[i].push(...objVertexData[i][index]);
-      // if this is the position index (index 0) and we parsed
-      // vertex colors then copy the vertex colors to the webgl vertex color data
+
       if (i === 0 && objColors.length > 1) {
         geometry.data.color.push(...objColors[index]);
       }
@@ -166,8 +169,8 @@ function parseOBJ(text) {
   }
 
   const keywords = {
+    //Parsowanie pozycji i kolorów wierzchołków
     v(parts) {
-      // if there are more than 3 values here they are vertex colors
       if (parts.length > 3) {
         objPositions.push(parts.slice(0, 3).map(parseFloat));
         objColors.push(parts.slice(3).map(parseFloat));
@@ -175,13 +178,15 @@ function parseOBJ(text) {
         objPositions.push(parts.map(parseFloat));
       }
     },
+    //Parsowanie normalnych wierzchołków
     vn(parts) {
       objNormals.push(parts.map(parseFloat));
     },
+    //Parsowanie mapowania tekstur wierzchołków
     vt(parts) {
-      // should check for missing v and extra w?
       objTexcoords.push(parts.map(parseFloat));
     },
+    //Składanie ścian z wierzchołków
     f(parts) {
       setGeometry();
       const numTriangles = parts.length - 2;
@@ -191,10 +196,9 @@ function parseOBJ(text) {
         addVertex(parts[tri + 2]);
       }
     },
-    s: noop, // smoothing group
+    s: noop,
+
     mtllib(parts, unparsedArgs) {
-      // the spec says there can be multiple filenames here
-      // but many exist with spaces in a single filename
       materialLibs.push(unparsedArgs);
     },
     usemtl(parts, unparsedArgs) {
@@ -226,13 +230,12 @@ function parseOBJ(text) {
     const parts = line.split(/\s+/).slice(1);
     const handler = keywords[keyword];
     if (!handler) {
-      console.warn('unhandled keyword:', keyword); // eslint-disable-line no-console
+      console.warn('Nieznany symbol:', keyword);
       continue;
     }
     handler(parts, unparsedArgs);
   }
 
-  // remove any arrays that have no entries.
   for (const geometry of geometries) {
     geometry.data = Object.fromEntries(
       Object.entries(geometry.data).filter(([, array]) => array.length > 0)
@@ -255,6 +258,10 @@ async function astLoadModel(filename) {
     colors: [],
     texcoords: [],
     normals: [],
+    bPosition: null,
+    //bNormal: null,
+    bTexture: null,
+    bColor: null,
   };
 
   mdl.geometries.forEach((e, i) => {
@@ -267,28 +274,46 @@ async function astLoadModel(filename) {
     modelobj.normals = [...modelobj.normals, ...e.data.normal];
   });
 
+  modelobj.bPosition = gl.createBuffer();
+  //modelobj.bNormal = gl.createBuffer();
+  modelobj.bTexture = gl.createBuffer();
+  modelobj.bColor = gl.createBuffer();
+
+  //Pozycja wierzcholka (X Y Z)
+  gl.bindBuffer(gl.ARRAY_BUFFER, modelobj.bPosition);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(modelobj.vertices),
+    gl.STATIC_DRAW
+  );
+  //Kolor wierzcholka (R G B A)
+  gl.bindBuffer(gl.ARRAY_BUFFER, modelobj.bColor);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(modelobj.colors),
+    gl.STATIC_DRAW
+  );
+
+  //Mapowanie tekstury (S T)
+  gl.bindBuffer(gl.ARRAY_BUFFER, modelobj.bTexture);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(modelobj.texcoords),
+    gl.STATIC_DRAW
+  );
+
   return modelobj;
 }
 
 const astDrawModel = (model) => {
-  gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(model.vertices),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ARRAY_BUFFER, astCBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(model.colors),
-    gl.STATIC_DRAW
-  );
-  gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(model.texcoords),
-    gl.STATIC_DRAW
-  );
+  gl.bindBuffer(gl.ARRAY_BUFFER, model.bPosition);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, model.bColor);
+  gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, model.bTexture);
+  gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
 
   gl.drawArrays(gl.TRIANGLES, 0, model.vertices.length / 3);
 };

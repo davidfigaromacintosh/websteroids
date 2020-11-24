@@ -47,18 +47,19 @@ const init = () => {
 
   //Pozycja wierzcholka (X Y Z)
   gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
-  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(0);
-
+  
   //Kolor wierzcholka (R G B A)
   gl.bindBuffer(gl.ARRAY_BUFFER, astCBuffer);
-  gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(1);
-
+  
   //Mapowanie tekstury (S T)
   gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
-  gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+
+  gl.enableVertexAttribArray(0);
+  gl.enableVertexAttribArray(1);
   gl.enableVertexAttribArray(2);
+
+  gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   const vsSource = `
 
