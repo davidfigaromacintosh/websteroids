@@ -12,7 +12,7 @@ const astSceneInitiator = async () => {
   g_Statek = astInstanceCreate(Statek, 0, 0, 0);
 
   const rock_range = 1000;
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 50; i++) {
     astInstanceCreate(Rock,
       rock_range * Math.random() - rock_range / 2,
       rock_range * Math.random() - rock_range / 2,
@@ -43,6 +43,7 @@ class Renderer extends _Object {
     this.layer = -100;
     this.distance = 40;
     this.above = 10;
+    this.warp = 500;
   }
 
   Render() {
@@ -52,7 +53,7 @@ class Renderer extends _Object {
     mat4.identity(m_Projection);
     mat4.identity(m_View);
 
-    mat4.perspective(m_Projection, (60 * Math.PI) / 180, 1.77, 1, 1000000);
+    mat4.perspective(m_Projection, (90 * Math.PI) / 180, 1.77, 1, 50000000);
 
     mat4.translate(m_View, m_View, [0, -this.above, -this.distance]);
     let v_lookat = mat4.create();
@@ -76,8 +77,8 @@ class Renderer extends _Object {
 // KLASA SKYBOXA
 class Skybox extends _Object {
   Create() {
-    this.layer = -99;
-
+    this.layer = 999;
+    
     this.t = astLoadTexture('res/images/top.png');
     this.b = astLoadTexture('res/images/bottom.png');
     this.l = astLoadTexture('res/images/left.png');
@@ -87,7 +88,7 @@ class Skybox extends _Object {
   }
 
   Render() {
-    const size = 100000;
+    const size = 8000000;
 
     const sky_color = [1, 1, 1, 1];
 
@@ -362,6 +363,146 @@ class Skybox extends _Object {
     );
 
     gl.bindTexture(gl.TEXTURE_2D, tex0);
+
+    const lines_color = [0.5, 0, 0.5, 0.5];
+    //Linie boczne
+    astDrawLine(
+      -g_Renderer.warp,
+      -g_Renderer.warp,
+      -2 * g_Renderer.warp,
+
+      -g_Renderer.warp,
+      -g_Renderer.warp,
+      +2 * g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      +g_Renderer.warp,
+      -g_Renderer.warp,
+      -2 * g_Renderer.warp,
+
+      +g_Renderer.warp,
+      -g_Renderer.warp,
+      +2 * g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      -g_Renderer.warp,
+      +g_Renderer.warp,
+      -2 * g_Renderer.warp,
+
+      -g_Renderer.warp,
+      +g_Renderer.warp,
+      +2 * g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      +g_Renderer.warp,
+      +g_Renderer.warp,
+      -2 * g_Renderer.warp,
+
+      +g_Renderer.warp,
+      +g_Renderer.warp,
+      +2 * g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+
+    //Linie na dole
+    astDrawLine(
+      -2 * g_Renderer.warp,
+      -g_Renderer.warp,
+      -g_Renderer.warp,
+
+      +2 * g_Renderer.warp,
+      -g_Renderer.warp,
+      -g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      -2 * g_Renderer.warp,
+      +g_Renderer.warp,
+      -g_Renderer.warp,
+
+      +2 * g_Renderer.warp,
+      +g_Renderer.warp,
+      -g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      -g_Renderer.warp,
+      -2 * g_Renderer.warp,
+      -g_Renderer.warp,
+
+      -g_Renderer.warp,
+      +2 * g_Renderer.warp,
+      -g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      +g_Renderer.warp,
+      -2 * g_Renderer.warp,
+      -g_Renderer.warp,
+
+      +g_Renderer.warp,
+      +2 * g_Renderer.warp,
+      -g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+
+    //Linie na gorze
+    astDrawLine(
+      -2 * g_Renderer.warp,
+      -g_Renderer.warp,
+      +g_Renderer.warp,
+
+      +2 * g_Renderer.warp,
+      -g_Renderer.warp,
+      +g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      -2 * g_Renderer.warp,
+      +g_Renderer.warp,
+      +g_Renderer.warp,
+
+      +2 * g_Renderer.warp,
+      +g_Renderer.warp,
+      +g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      -g_Renderer.warp,
+      -2 * g_Renderer.warp,
+      +g_Renderer.warp,
+
+      -g_Renderer.warp,
+      +2 * g_Renderer.warp,
+      +g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+    astDrawLine(
+      +g_Renderer.warp,
+      -2 * g_Renderer.warp,
+      +g_Renderer.warp,
+
+      +g_Renderer.warp,
+      +2 * g_Renderer.warp,
+      +g_Renderer.warp,
+
+      lines_color[0], lines_color[1], lines_color[2], lines_color[3]
+    );
+
   }
 }
 
@@ -442,6 +583,7 @@ class Statek extends _Object {
 
     gl.bindTexture(gl.TEXTURE_2D, tex0);
 
+    /*
     astDrawLine(
       -20,
       -20,
@@ -545,7 +687,7 @@ class Statek extends _Object {
       0.33,
       0.5
     );
-
+    */
   }
 
   Update() {
@@ -648,7 +790,15 @@ class Statek extends _Object {
     this.x += this.speed * this.direction[0];
     this.y += this.speed * this.direction[1];
     this.z += this.speed * this.direction[2];
+
+    if (this.x >  g_Renderer.warp) this.x -= 2 * g_Renderer.warp;
+    if (this.x < -g_Renderer.warp) this.x += 2 * g_Renderer.warp;
+    if (this.y >  g_Renderer.warp) this.y -= 2 * g_Renderer.warp;
+    if (this.y < -g_Renderer.warp) this.y += 2 * g_Renderer.warp;
+    if (this.z >  g_Renderer.warp) this.z -= 2 * g_Renderer.warp;
+    if (this.z < -g_Renderer.warp) this.z += 2 * g_Renderer.warp;
   }
+
 }
 
 //KLASA ASTEROIDKI
@@ -677,6 +827,13 @@ class Rock extends _Object {
     this.x += this.mov_axis[0];
     this.y += this.mov_axis[1];
     this.z += this.mov_axis[2];
+
+    if (this.x >  g_Renderer.warp) this.x -= 2 * g_Renderer.warp;
+    if (this.x < -g_Renderer.warp) this.x += 2 * g_Renderer.warp;
+    if (this.y >  g_Renderer.warp) this.y -= 2 * g_Renderer.warp;
+    if (this.y < -g_Renderer.warp) this.y += 2 * g_Renderer.warp;
+    if (this.z >  g_Renderer.warp) this.z -= 2 * g_Renderer.warp;
+    if (this.z < -g_Renderer.warp) this.z += 2 * g_Renderer.warp;
   }
 
   Render() {
@@ -689,16 +846,27 @@ class Rock extends _Object {
       Math.cos(this.rot / 2)
     ]);
 
-    mat4.translate(m_World, m_World, [this.x, this.y, this.z]);
-    mat4.scale(m_World, m_World, [this.scale, this.scale, this.scale]);
-    mat4.multiply(m_World, m_World, r_matrix);
-    astMatricesUpdate();
+    const vec_warp = [
+      [0, 0, 0],
+      [-g_Renderer.warp, 0, 0],
+      [ g_Renderer.warp, 0, 0],
+      [0, -g_Renderer.warp, 0],
+      [0,  g_Renderer.warp, 0],
+      [0, 0, -g_Renderer.warp],
+      [0, 0,  g_Renderer.warp],
+    ];
+    for (var i = 0 ; i < 7; i++) {
+      mat4.translate(m_World, m_World, [this.x + 2 * vec_warp[i][0], this.y + 2 * vec_warp[i][1], this.z + 2 * vec_warp[i][2]]);
+      mat4.scale(m_World, m_World, [this.scale, this.scale, this.scale]);
+      mat4.multiply(m_World, m_World, r_matrix);
+      astMatricesUpdate();
 
-    gl.bindTexture(gl.TEXTURE_2D, g_RockTexture);
-    astDrawModel(g_Rock);
-    gl.bindTexture(gl.TEXTURE_2D, tex0);
+      gl.bindTexture(gl.TEXTURE_2D, g_RockTexture);
+      astDrawModel(g_Rock);
+      gl.bindTexture(gl.TEXTURE_2D, tex0);
 
-    mat4.identity(m_World);
+      mat4.identity(m_World);
+    } 
     astMatricesUpdate();
   }
 

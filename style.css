@@ -2,6 +2,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #112;
+  overflow: hidden;
 }
 
 #gl-canvas {
@@ -11,5 +12,5 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  border: 6px solid cornflowerblue;
+  /*border: 6px solid cornflowerblue;*/
 }
