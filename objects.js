@@ -7,12 +7,12 @@ const astSceneInitiator = async () => {
 
   g_Rock = await astLoadModel('res/models/rock1.obj');
   g_RockTexture = astLoadTexture('res/images/moon.jpg');
+  g_Statek = astInstanceCreate(Statek, 0, 0, 0);
   g_Renderer = astInstanceCreate(Renderer, 0, 0, 0);
   astInstanceCreate(Skybox, 0, 0, 0);
-  g_Statek = astInstanceCreate(Statek, 0, 0, 0);
 
   const rock_range = 1000;
-  for (var i = 0; i < 50; i++) {
+  for (var i = 0; i < 20; i++) {
     astInstanceCreate(Rock,
       rock_range * Math.random() - rock_range / 2,
       rock_range * Math.random() - rock_range / 2,
@@ -512,6 +512,9 @@ class Statek extends _Object {
   async Create() {
     
     this.layer = 10;
+
+    this.radius = 4;
+
     this.speed = 0;
     this.speed_max = 2;
     this.speed_delta = 0.03125;
@@ -806,7 +809,11 @@ class Rock extends _Object {
 
   Create() {
 
-    this.scale = 1 + 7 * Math.random();
+    const sizes = [1, 2, 4, 8];
+    this.scale = 2 * sizes[Math.floor(4 * Math.random())];
+
+    this.radius = 2.5 * this.scale;
+
     this.rot = 0;
     this.rot_speed = 2 * Math.random() * Math.PI / 180;
     this.rot_axis = [
@@ -823,6 +830,11 @@ class Rock extends _Object {
   }
 
   Update() {
+
+    if (vec3.dist([this.x, this.y, this.z], [g_Statek.x, g_Statek.y, g_Statek.z]) < this.radius + g_Statek.radius) {
+      astInstanceDestroy(this);
+    }
+
     this.rot += this.rot_speed;
     this.x += this.mov_axis[0];
     this.y += this.mov_axis[1];

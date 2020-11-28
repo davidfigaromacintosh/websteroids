@@ -7,13 +7,12 @@ const astInstanceCreate = (_class, x, y, z) => {
 
 // Usuwanie instancji ze sceny
 const astInstanceDestroy = (reference) => {
-  if (astObjectList.length > 0) {
-    for (var i = astObjectList.length - 1; i > -1; i--) {
-      if (astObjectList[i].obj == reference) {
-        astObjectList[i].removed = true;
-      }
+  astObjectList.some( (e, i) => {
+    if (e.obj == reference) {
+      e.removed = true;
+      return true;
     }
-  }
+  });
 };
 
 // Narysuj trójkąt
