@@ -27,6 +27,7 @@ var astVBuffer = null;
 var astCBuffer = null;
 var astTBuffer = null;
 
+var __g_InstanceID = 0;
 //Inicjalizacja silnika gry
 const init = () => {
   const canvas = document.querySelector('#gl-canvas');
@@ -144,6 +145,9 @@ class _Object {
 
     this.layer = 0;
 
+    this.InstanceID = __g_InstanceID;
+    __g_InstanceID++;
+
     this.Create();
   }
 }
@@ -201,8 +205,8 @@ const astGameLoop = () => {
 
   if (astObjectList.length > 0) {
     for (var i = astObjectList.length - 1; i > -1; i--) {
-      if (astObjectList[i].removed === true) {
-        astObjectList.splice(i);
+      if (astObjectList[i].removed == true) {
+        astObjectList.splice(i, 1);
       }
     }
   }
