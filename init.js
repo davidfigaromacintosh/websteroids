@@ -92,7 +92,9 @@ varying vec2 out_TexCoord;
 uniform sampler2D ast_Texture;
 
 void main() {
-  gl_FragColor = out_Color * texture2D(ast_Texture, out_TexCoord);
+  vec4 ast_Color = out_Color * texture2D(ast_Texture, out_TexCoord);
+  if (ast_Color.a == 0.0) discard;
+  gl_FragColor = ast_Color;
 }
   `;
 
