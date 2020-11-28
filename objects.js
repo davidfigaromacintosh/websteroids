@@ -532,8 +532,8 @@ class Statek extends _Object {
 
     this.direction = [1, 0, 0];
 
-    this.model = await astLoadModel('res/models/shipv2.obj');
-    this.texShip = astLoadTexture('res/images/uv.jpg');
+    this.model = await astLoadModel('res/models/shipv2transformed000.obj');
+    this.texShip = astLoadTexture('res/images/ship_tex.png');
   }
 
   Render() {
@@ -565,132 +565,34 @@ class Statek extends _Object {
     */
 
     mat4.identity(m_World);
-    var v_temp = mat4.create();
-    mat4.copy(v_temp, m_View);
-    mat4.identity(m_View);
-    mat4.translate(m_View, m_View, [0, -g_Renderer.above, -g_Renderer.distance]);
-    mat4.rotateY(m_World, m_World, 180 * Math.PI / 180);
+    mat4.translate(m_World, m_World, [this.x, this.y, this.z]);
 
+    let m_temp = mat4.create();
+    m_temp[ 0] = this.nor_roll[0];
+    m_temp[ 1] = this.nor_roll[1];
+    m_temp[ 2] = this.nor_roll[2];
+
+    m_temp[ 4] = this.nor_yaw[0];
+    m_temp[ 5] = this.nor_yaw[1];
+    m_temp[ 6] = this.nor_yaw[2];
+
+    m_temp[ 8] = this.direction[0];
+    m_temp[ 9] = this.direction[1];
+    m_temp[10] = this.direction[2];
+
+    mat4.multiply(m_World, m_World, m_temp);
     mat4.rotateZ(m_World, m_World, -this.rot_pitch / 10);
     mat4.rotateY(m_World, m_World, this.rot_yaw / 10);
     mat4.rotateX(m_World, m_World, this.rot_roll / 10);
-    mat4.translate(m_World, m_World, [0, -9, 0]);
     astMatricesUpdate();
 
     gl.bindTexture(gl.TEXTURE_2D, this.texShip);
     astDrawModel(this.model);
 
-    mat4.copy(m_View, v_temp);
     mat4.identity(m_World);
     astMatricesUpdate();
 
     gl.bindTexture(gl.TEXTURE_2D, tex0);
-
-    /*
-    astDrawLine(
-      -20,
-      -20,
-      0,
-      -20,
-      -20,
-      20,
-
-      1,
-      1,
-      1,
-      1
-    );
-
-    astDrawLine(
-      20,
-      -20,
-      0,
-      20,
-      -20,
-      20,
-
-      1,
-      1,
-      1,
-      1
-    );
-
-    astDrawLine(
-      -20,
-      20,
-      0,
-      -20,
-      20,
-      20,
-
-      1,
-      1,
-      1,
-      1
-    );
-
-    astDrawLine(
-      20,
-      20,
-      0,
-      20,
-      20,
-      20,
-
-      1,
-      1,
-      1,
-      1
-    );
-
-    astDrawTriangle(
-      -20,
-      -20,
-      0,
-      20,
-      -20,
-      0,
-      -20,
-      20,
-      0,
-
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-
-      0,
-      0,
-      0.33,
-      0.5
-    );
-
-    astDrawTriangle(
-      20,
-      20,
-      0,
-      -20,
-      20,
-      0,
-      20,
-      -20,
-      0,
-
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-
-      0.33,
-      0,
-      0.33,
-      0.5
-    );
-    */
   }
 
   Update() {
