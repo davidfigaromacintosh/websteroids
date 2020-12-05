@@ -26,8 +26,10 @@ function keyUpHandler(event) {
 var astVBuffer = null;
 var astCBuffer = null;
 var astTBuffer = null;
+var astNBuffer = null;
 
 var __g_InstanceID = 0;
+var __g_LabelID = 0;
 //Inicjalizacja silnika gry
 const init = () => {
   const canvas = document.querySelector('#gl-canvas');
@@ -45,6 +47,7 @@ const init = () => {
   astVBuffer = gl.createBuffer();
   astCBuffer = gl.createBuffer();
   astTBuffer = gl.createBuffer();
+  astNBuffer = gl.createBuffer();
 
   //Pozycja wierzcholka (X Y Z)
   gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
@@ -55,9 +58,13 @@ const init = () => {
   //Mapowanie tekstury (S T)
   gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
 
+  //Normalne wierzchołka (S T)
+  gl.bindBuffer(gl.ARRAY_BUFFER, astNBuffer);
+
   gl.enableVertexAttribArray(0);
   gl.enableVertexAttribArray(1);
   gl.enableVertexAttribArray(2);
+  gl.enableVertexAttribArray(3);
 
   gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -69,15 +76,26 @@ precision mediump float;
 attribute vec3 in_Position;
 attribute vec4 in_Color;
 attribute vec2 in_TexCoord;
+attribute vec3 in_Normal;
 
 varying vec4 out_Color;
 varying vec2 out_TexCoord;
 
 uniform mat4 m_Projection, m_View, m_World;
+uniform bool lights;
 
 void main() {
-  gl_Position = m_Projection * m_View * m_World * vec4(in_Position.xyz, 1.0);
-  out_Color = in_Color;
+  mat4 mvp = m_Projection * m_View * m_World;
+
+  vec3 lightDir = normalize(vec3(-1.0, 0.5, 0.0));
+  vec3 normalVec = normalize(m_World * vec4(in_Normal, 0.0)).xyz;
+  float diffuseReflection = max(0.1, dot(normalVec, lightDir));
+
+  gl_Position = mvp * vec4(in_Position.xyz, 1.0);
+
+  if (lights) out_Color = vec4(vec3(in_Color.rgb) * diffuseReflection, in_Color.a);
+  else out_Color = in_Color;
+  
   out_TexCoord = in_TexCoord;
 }
   `;
@@ -106,11 +124,13 @@ void main() {
       vertexPosition: gl.getAttribLocation(shaderProgram, 'in_Position'),
       vertexColor: gl.getAttribLocation(shaderProgram, 'in_Color'),
       vertexTexcoord: gl.getAttribLocation(shaderProgram, 'in_TexCoord'),
+      vertexNormal: gl.getAttribLocation(shaderProgram, 'in_Normal'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'm_Projection'),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'm_View'),
       modelWorldMatrix: gl.getUniformLocation(shaderProgram, 'm_World'),
+      lights: gl.getUniformLocation(shaderProgram, 'lights'),
       TextureSampler: gl.getUniformLocation(shaderProgram, 'ast_Texture'),
     },
   };

@@ -1,16 +1,32 @@
-body {
-  margin: 0;
+body, #container {
+  position: absolute;
+  color: black;
   padding: 0;
   background-color: #112;
   overflow: hidden;
-}
-
-#gl-canvas {
   margin: auto;
-  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  width: 1600;
+  height: 900;
+}
+
+#gl-canvas {
+  position: absolute;
   /*border: 6px solid cornflowerblue;*/
+}
+
+.hud-label {
+  position: absolute;
+  user-select: none;
+  font-family: sans-serif;
+  font-weight: 900;
+
+  text-shadow:
+   -1px -1px 0 #fff,  
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+     1px 1px 0 #fff;
 }
