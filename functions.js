@@ -38,10 +38,9 @@ const astDrawTriangle = (
   a
 ) => {
   const positions = [x1, y1, z1, x2, y2, z2, x3, y3, z3];
-
   const colors = [r, g, b, a, r, g, b, a, r, g, b, a];
-
   const texcoords = [s1, t1, s2, t2, s3, t3];
+  const normals = [0, 1, 0, 0, 1, 0, 0, 1, 0];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
@@ -52,6 +51,9 @@ const astDrawTriangle = (
   gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
   gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, astNBuffer);
+  gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 };
@@ -59,22 +61,22 @@ const astDrawTriangle = (
 // Narysuj linie
 const astDrawLine = (x1, y1, z1, x2, y2, z2, r, g, b, a) => {
   const positions = [x1, y1, z1, x2, y2, z2];
-
   const colors = [r, g, b, a, r, g, b, a];
-
   const texcoords = [0, 0, 1, 1];
+  const normals = [0, 1, 0, 0, 1, 0];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, astVBuffer);
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
   gl.bindBuffer(gl.ARRAY_BUFFER, astCBuffer);
   gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
   gl.bindBuffer(gl.ARRAY_BUFFER, astTBuffer);
   gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, astNBuffer);
+  gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
   gl.drawArrays(gl.LINES, 0, 2);
 };
@@ -258,7 +260,7 @@ async function astLoadModel(filename) {
     texcoords: [],
     normals: [],
     bPosition: null,
-    //bNormal: null,
+    bNormal: null,
     bTexture: null,
     bColor: null,
   };
@@ -274,7 +276,7 @@ async function astLoadModel(filename) {
   });
 
   modelobj.bPosition = gl.createBuffer();
-  //modelobj.bNormal = gl.createBuffer();
+  modelobj.bNormal = gl.createBuffer();
   modelobj.bTexture = gl.createBuffer();
   modelobj.bColor = gl.createBuffer();
 
@@ -301,6 +303,14 @@ async function astLoadModel(filename) {
     gl.STATIC_DRAW
   );
 
+  //Normalne wierzchołka (X Y Z)
+  gl.bindBuffer(gl.ARRAY_BUFFER, modelobj.bNormal);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(modelobj.normals),
+    gl.STATIC_DRAW
+  );
+
   return modelobj;
 }
 
@@ -313,6 +323,9 @@ const astDrawModel = (model) => {
 
   gl.bindBuffer(gl.ARRAY_BUFFER, model.bTexture);
   gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, model.bNormal);
+  gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
 
   gl.drawArrays(gl.TRIANGLES, 0, model.vertices.length / 3);
 };
@@ -406,4 +419,37 @@ function loadShader(gl, type, source) {
   }
 
   return _shader;
+}
+
+//FUNKCJA TWORZĄCA LABELE
+const astLabelCreate = (text, x = 0, y = 0, size = 32) => {
+  _ele = document.getElementById('container');
+
+  _label = document.createElement('span');
+  _label.innerHTML = text;
+
+  const label_id =  __g_LabelID;
+  __g_LabelID++;
+  _label.id = '--LABEL-ID-' + label_id;
+
+  _label.className = 'hud-label';
+  _label.setAttribute('style', 'left: ' + x + '; top: ' + y + '; font-size: ' + size + ';');
+
+  _ele.appendChild(_label);
+  return label_id;
+};
+
+//FUNKCJA USUWAJĄCA LABELE
+const astLabelDestroy = (labelid) => {
+  document.getElementById('--LABEL-ID-' + labelid).remove();
+}
+
+//FUNKCJA USTAWIAJĄCA TEKST LABELU
+const astLabelContent = (labelid, text) => {
+  document.getElementById('--LABEL-ID-' + labelid).innerHTML = text;
+}
+
+const astLabelSetPosition = (labelid, x, y) => {
+  document.getElementById('--LABEL-ID-' + labelid).style.left = x + 'px';
+  document.getElementById('--LABEL-ID-' + labelid).style.top  = y + 'px';
 }
