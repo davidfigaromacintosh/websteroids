@@ -1,6 +1,6 @@
 var g_Renderer = null;
 var g_Statek = null;
-var g_Rock = null;
+var g_RockModel = [];
 var g_HUD = null;
 var g_RockTexture = null;
 var g_RocketModel = null;
@@ -26,7 +26,11 @@ const astSceneInitiator = async () => {
   g_SndOverheat = new Audio('res/sounds/overheat.mp3');
   g_SndCooldown = new Audio('res/sounds/cooldown.mp3');
 
-  g_Rock = await astLoadModel('res/models/rock1.obj');
+  g_RockModel[0] = await astLoadModel('res/models/newrockv1.obj');
+  g_RockModel[1] = await astLoadModel('res/models/rockv2.obj');
+  g_RockModel[2] = await astLoadModel('res/models/rockv3.obj');
+  g_RockModel[3] = await astLoadModel('res/models/rockv4.obj');
+  
   g_RockTexture = astLoadTexture('res/images/moon.jpg');
   g_RocketModel = await astLoadModel('res/models/rocket.obj');
   g_RocketTexture = astLoadTexture('res/images/rocket.png');
@@ -110,7 +114,7 @@ class Renderer extends _Object {
     mat4.identity(m_Projection);
     mat4.identity(m_View);
 
-    mat4.perspective(m_Projection, (90 * Math.PI) / 180, 1.77, 1, 50000000);
+    mat4.perspective(m_Projection, (75 * Math.PI) / 180, 1.77, 1, 50000000);
 
     mat4.translate(m_View, m_View, [0, -this.above, -this.distance]);
     let v_lookat = mat4.create();
@@ -650,6 +654,10 @@ class Statek extends _Object {
     m_temp[10] = this.direction[2];
 
     if (this.shield % 2 == 0 && this.hp > 0) {
+      gl.uniform1i(
+        programInfo.uniformLocations.lights,
+        true
+      );
       for (var i = 0 ; i < g_Renderer.vec_warp.length; i++) {
         mat4.translate(m_World, m_World, [this.x + 2 * g_Renderer.vec_warp[i][0], this.y + 2 * g_Renderer.vec_warp[i][1], this.z + 2 * g_Renderer.vec_warp[i][2]]);
         mat4.multiply(m_World, m_World, m_temp);
@@ -665,6 +673,10 @@ class Statek extends _Object {
         mat4.identity(m_World);
         astMatricesUpdate();
       } 
+      gl.uniform1i(
+        programInfo.uniformLocations.lights,
+        false
+      );
     }
 
   }
@@ -786,7 +798,12 @@ class Statek extends _Object {
       g_SndWeapon.currentTime = 0;
       g_SndWeapon.play();
 
-      let rocket = astInstanceCreate(Rocket, this.x, this.y, this.z);
+      let rocket = astInstanceCreate(
+        Rocket,
+        this.x + 2 * this.radius * this.direction[0],
+        this.y + 2 * this.radius * this.direction[1],
+        this.z + 2 * this.radius * this.direction[2]
+      );
       
       rocket.direction = [...this.direction];
       rocket.roll = [...this.nor_roll];
@@ -829,6 +846,10 @@ class Statek extends _Object {
 //KLASA ASTEROIDKI
 class Rock extends _Object {
 
+  Create() {
+    this.model_index = Math.floor(4 * Math.random());
+  }
+
   Startme(sizeindex = null, movaxis = null) {
 
     this.size_index = 0;
@@ -840,10 +861,10 @@ class Rock extends _Object {
     }
 
     const sizes = [1, 2, 4, 8];
-    this.scale = 2 * sizes[this.size_index];
+    this.scale = 4 * sizes[this.size_index];
     this.hp = sizes[this.size_index];
 
-    this.radius = 2.5 * this.scale;
+    this.radius = 1.25 * this.scale;
 
 
     this.rot = 0;
@@ -942,7 +963,7 @@ class Rock extends _Object {
       astMatricesUpdate();
 
       gl.bindTexture(gl.TEXTURE_2D, g_RockTexture);
-      astDrawModel(g_Rock);
+      astDrawModel(g_RockModel[this.model_index]);
       gl.bindTexture(gl.TEXTURE_2D, tex0);
 
       mat4.identity(m_World);
@@ -962,7 +983,7 @@ class Rocket extends _Object {
   Create() {
     this.speed = 8;
     this.lifespan = 120;
-    this.radius = 0.5;
+    this.radius = 0.75;
     this.direction = [1, 0, 0];
     this.roll = [0, 1, 0];
     this.yaw = [0, 0, 1];
@@ -1015,11 +1036,14 @@ class Rocket extends _Object {
 
     mat4.identity(m_World);
 
+    gl.uniform1i(
+      programInfo.uniformLocations.lights,
+      true
+    );
     for (var i = 0 ; i < g_Renderer.vec_warp.length; i++) {
-      
       mat4.translate(m_World, m_World, [this.x + 2 * g_Renderer.vec_warp[i][0], this.y + 2 * g_Renderer.vec_warp[i][1], this.z + 2 * g_Renderer.vec_warp[i][2]]);
       mat4.multiply(m_World, m_World, this.orientation);
-      mat4.scale(m_World, m_World, [4, 4, 4]);
+      mat4.scale(m_World, m_World, [3, 3, 3]);
       mat4.rotateX(m_World, m_World, 90 * Math.PI / 180);
       astMatricesUpdate();
 
@@ -1029,7 +1053,11 @@ class Rocket extends _Object {
 
       mat4.identity(m_World);
       astMatricesUpdate();
-    } 
+    }
+    gl.uniform1i(
+      programInfo.uniformLocations.lights,
+      false
+    );
   }
 
 }

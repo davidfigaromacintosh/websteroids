@@ -87,15 +87,15 @@ uniform bool lights;
 void main() {
   mat4 mvp = m_Projection * m_View * m_World;
 
-  vec3 lightDir = normalize(vec3(-1.0, 0.5, 0.0));
+  vec3 lightDir = normalize(vec3(1.0, -0.5, -0.5));
   vec3 normalVec = normalize(m_World * vec4(in_Normal, 0.0)).xyz;
-  float diffuseReflection = max(0.1, dot(normalVec, lightDir));
+  float diffuseReflection = max(0.1, dot(normalVec, -lightDir));
 
   gl_Position = mvp * vec4(in_Position.xyz, 1.0);
 
   if (lights) out_Color = vec4(vec3(in_Color.rgb) * diffuseReflection, in_Color.a);
   else out_Color = in_Color;
-  
+
   out_TexCoord = in_TexCoord;
 }
   `;
